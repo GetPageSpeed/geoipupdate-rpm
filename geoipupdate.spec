@@ -21,7 +21,6 @@ BuildRequires:	perl(File::Spec)
 BuildRequires:	perl(LWP::Simple)
 BuildRequires:	perl(PerlIO::gzip)
 BuildRequires:	perl(strict)
-Obsoletes:	GeoIP < 1.6.0
 
 %description
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP
