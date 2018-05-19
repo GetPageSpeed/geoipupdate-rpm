@@ -1,0 +1,76 @@
+version: 2
+jobs:
+  "el7":
+      parallelism: 1
+      machine: true
+      steps:
+        - checkout
+        - run:
+            name: "Build all the .spec files for EL7 via Docker image."
+            command: docker run -v ${PWD}:/sources -v ${PWD}:/output:Z ${DOCKER_IMAGE}:${OS_TYPE}-${OS_VERSION} /bin/bash -c "rm -rf /etc/yum.repos.d/CentOS-Vault.repo; rm -rf /etc/yum.repos.d/CentOS-Sources.repo; /usr/bin/build"
+            environment:
+              DOCKER_IMAGE: alectolytic/rpmbuilder
+              OS_ARCH: x86_64
+              OS_TYPE: centos
+              OS_DIST: epel
+              OS_VERSION: 7 
+        - run:
+            name: "Actual check. Failure to stat will result in failed CircleCi test in GitHub"
+            command: stat *.rpm
+        - persist_to_workspace:
+            root: /home/circleci/project
+            paths:
+              - "*.rpm"
+  "el6":
+      parallelism: 1
+      machine: true
+      steps:
+        - checkout
+        - run:
+            name: "Build all the .spec files for EL6 via Docker image."
+            command: docker run -v ${PWD}:/sources -v ${PWD}:/output:Z ${DOCKER_IMAGE}:${OS_TYPE}-${OS_VERSION} /bin/bash -c "sed -i 's/-v OUTPUT_UID/-z "${OUTPUT_UID}"/' /usr/bin/build; /usr/bin/build"
+            environment:
+              DOCKER_IMAGE: alectolytic/rpmbuilder
+              OS_ARCH: x86_64
+              OS_TYPE: centos
+              OS_DIST: epel
+              OS_VERSION: 6
+        - run:
+            name: "Actual check. Failure to stat will result in failed CircleCi test in GitHub"
+            command: stat *.rpm
+        - persist_to_workspace:
+            root: /home/circleci/project
+            paths:
+              - "*.rpm"
+  deploy:
+    machine: true
+    steps:
+      - attach_workspace:
+          at: /home/circleci/project
+      - run:
+          name: "Delete stupid keys that was added by CircleCI by default"
+          command: ssh-add -D
+      - add_ssh_keys:
+          fingerprints:
+            - "8c:a4:dd:2c:47:4c:63:aa:90:0b:e0:d6:15:be:87:82"
+      - run:
+          name: "Deploy all RPMs to GetPageSpeed repo."
+          command: scp -r *.rpm $GPS_BUILD_USER@$GPS_BUILD_SERVER:~/incoming/
+          context: getpagespeed-builder  
+      - run:
+          name: "Trigger SSH hook"
+          command: ssh $GPS_BUILD_USER@$GPS_BUILD_SERVER "launch2log.sh ~/scripts/incoming.sh ~/incoming/process.log"
+          context: getpagespeed-builder
+workflows:
+  version: 2
+  build_deploy:
+    jobs:
+      - "el7"
+      - "el6"
+      - deploy:
+          requires:
+            - "el7"
+            - "el6"
+          filters:
+            branches:
+              only: master      
