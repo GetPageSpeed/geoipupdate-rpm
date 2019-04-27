@@ -1,12 +1,12 @@
 %global _hardened_build 1
 
 Name:		geoipupdate
-Version:	2.5.0
-Release:	1%{?dist}
+Version: 4.0.2
+Release: 1%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
 URL:		http://dev.maxmind.com/geoip/geoipupdate/
-Source0:	http://github.com/maxmind/geoipupdate/releases/download/v%{version}/geoipupdate-%{version}.tar.gz
+Source0:	https://github.com/maxmind/geoipupdate/releases/download/v%{version}/geoipupdate-%{version}.tar.gz
 Source1:	geoipupdate.cron
 Source2:	geoipupdate6.cron
 BuildRequires:	coreutils
@@ -63,8 +63,14 @@ make install DESTDIR=%{buildroot}
 rm -rf %{buildroot}%{_datadir}/doc/geoipupdate
 
 # Fix up the config file to have geoipupdate fetch the free legacy databases by default
-sed -i -e 's/^\(ProductIds\) .*$/\1 506 517 533/' \
-	%{buildroot}%{_sysconfdir}/GeoIP.conf
+# sed -i -e 's/^\(ProductIds\) .*$/\1 506 517 533/' \
+# 	%{buildroot}%{_sysconfdir}/GeoIP.conf
+
+mkdir -p %{buildroot}%{_datadir}/%{name}
+mv %{buildroot}%{_sysconfdir}/GeoIP.conf %{buildroot}%{_datadir}/%{name}/etc.GeoIP.conf 
+mv %{buildroot}%{_bindir}/geoipupdate %{buildroot}%{_datadir}/%{name}/bin.geoipupdate
+mkdir -p %{buildroot}%{_datadir}/%{name}/man1
+mv %{buildroot}%{_mandir}/man1/geoipupdate.* %{buildroot}%{_datadir}/%{name}/man1
 
 install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
 install -D -m 755 %{SOURCE2} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate6
@@ -82,10 +88,14 @@ mkdir -p %{buildroot}%{_datadir}/GeoIP/download/
 %doc LICENSE
 %endif
 %doc conf/GeoIP.conf.default README.md ChangeLog.md
-%config(noreplace) %{_sysconfdir}/GeoIP.conf
-%{_bindir}/geoipupdate
-%{_mandir}/man1/geoipupdate.1*
+%config(noreplace) %{_datadir}/%{name}/etc.GeoIP.conf
+%{_datadir}/%{name}/bin.geoipupdate
 %{_mandir}/man5/GeoIP.conf.5*
+%{_datadir}/%{name}/man1/*
+
+# %%config(noreplace) %{_sysconfdir}/GeoIP.conf
+# %%{_bindir}/geoipupdate
+# %%{_mandir}/man1/geoipupdate.1*
 
 %files cron
 %config(noreplace) %{_sysconfdir}/cron.weekly/geoipupdate
@@ -98,7 +108,18 @@ mkdir -p %{buildroot}%{_datadir}/GeoIP/download/
 %ghost %{_datadir}/GeoIP/download/GeoLiteCityv6.dat.gz
 %ghost %{_datadir}/GeoIP/download/GeoIPASNumv6.dat.gz
 
+%triggerin -- GeoIP
+! test -e %{_sysconfdir}/GeoIP.conf && install -m 0644 %{_datadir}/%{name}/etc.GeoIP.conf %{_sysconfdir}/GeoIP.conf
+install -m 0755 %{_datadir}/%{name}/bin.geoipupdate %{_bindir}/geoipupdate
+mv -f %{_datadir}/%{name}/man1/* %{_mandir}/man1/
+
 %changelog
+* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 4.0.2-1
+- upstream version auto-updated to 4.0.2
+
+* Sun Jul 15 2018 Danila Vershinin <info@getpagespeed.com> - 2.5.0-2
+- Ensure co-existence with GeoIP-1.5
+
 * Tue Oct 31 2017 Paul Howarth <paul@city-fan.org> - 2.5.0-1
 - Update to 2.5.0
   - Replace use of strnlen() due to lack of universal availability (GH#71)
