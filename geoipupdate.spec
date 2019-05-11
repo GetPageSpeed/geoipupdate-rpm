@@ -1,12 +1,12 @@
 %global _hardened_build 1
 
 Name:		geoipupdate
-Version: 4.0.2
-Release: 1%{?dist}
+Version: 	3.1.1
+Release: 	2%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
 URL:		http://dev.maxmind.com/geoip/geoipupdate/
-Source0:	https://github.com/maxmind/geoipupdate/releases/download/v%{version}/geoipupdate-%{version}.tar.gz
+Source0:	https://github.com/maxmind/geoipupdate-legacy/archive/v%{version}.tar.gz#/%{name}-legacy-%{version}.tar.gz
 Source1:	geoipupdate.cron
 Source2:	geoipupdate6.cron
 BuildRequires:	coreutils
@@ -21,6 +21,12 @@ BuildRequires:	perl(File::Spec)
 BuildRequires:	perl(LWP::Simple)
 BuildRequires:	perl(PerlIO::gzip)
 BuildRequires:	perl(strict)
+
+# Add these when building from a git checkout
+BuildRequires: autoconf
+BuildRequires: automake
+BuildRequires: libtool
+
 
 %description
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP
@@ -50,9 +56,10 @@ Provides:	GeoIP-update6 = 1.6.0
 Cron job for weekly updates to GeoIP IPv6 Legacy database from MaxMind.
 
 %prep
-%setup -q
+%autosetup -n geoipupdate-legacy-%{version}
 
 %build
+./bootstrap
 %configure --disable-static --disable-dependency-tracking
 make %{?_smp_mflags}
 
@@ -114,8 +121,8 @@ install -m 0755 %{_datadir}/%{name}/bin.geoipupdate %{_bindir}/geoipupdate
 mv -f %{_datadir}/%{name}/man1/* %{_mandir}/man1/
 
 %changelog
-* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 4.0.2-1
-- upstream version auto-updated to 4.0.2
+* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-2
+- upstream version auto-updated to 3.1.1
 
 * Sun Jul 15 2018 Danila Vershinin <info@getpagespeed.com> - 2.5.0-2
 - Ensure co-existence with GeoIP-1.5
