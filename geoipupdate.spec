@@ -2,25 +2,17 @@
 
 Name:		geoipupdate
 Version: 	3.1.1
-Release: 	2%{?dist}
+Release: 	3%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
 URL:		http://dev.maxmind.com/geoip/geoipupdate/
 Source0:	https://github.com/maxmind/geoipupdate-legacy/archive/v%{version}.tar.gz#/%{name}-legacy-%{version}.tar.gz
 Source1:	geoipupdate.cron
-Source2:	geoipupdate6.cron
 BuildRequires:	coreutils
 BuildRequires:	gcc
 BuildRequires:	libcurl-devel
 BuildRequires:	make
 BuildRequires:	zlib-devel
-# Perl modules used by IPv6 cron script
-BuildRequires:	perl-generators
-BuildRequires:	perl(File::Copy)
-BuildRequires:	perl(File::Spec)
-BuildRequires:	perl(LWP::Simple)
-BuildRequires:	perl(PerlIO::gzip)
-BuildRequires:	perl(strict)
 
 # Add these when building from a git checkout
 BuildRequires: autoconf
@@ -41,19 +33,7 @@ Obsoletes:	GeoIP-update < 1.6.0
 Provides:	GeoIP-update = 1.6.0
 
 %description cron
-Cron job for weekly updates to GeoIP Legacy database from MaxMind.
-
-%package cron6
-Summary:	Cron job to do weekly updates of GeoIP IPv6 databases
-BuildArch:	noarch
-Requires:	%{name} = %{version}-%{release}
-Requires:	crontabs
-Requires:	wget
-Obsoletes:	GeoIP-update6 < 1.6.0
-Provides:	GeoIP-update6 = 1.6.0
-
-%description cron6
-Cron job for weekly updates to GeoIP IPv6 Legacy database from MaxMind.
+Cron job for weekly updates to GeoIP databases from MaxMind.
 
 %prep
 %autosetup -n geoipupdate-legacy-%{version}
@@ -80,13 +60,6 @@ mkdir -p %{buildroot}%{_datadir}/%{name}/man1
 mv %{buildroot}%{_mandir}/man1/geoipupdate.* %{buildroot}%{_datadir}/%{name}/man1
 
 install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
-install -D -m 755 %{SOURCE2} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate6
-
-# Make the download directory for the IPv6 data cron job and some ghost files
-mkdir -p %{buildroot}%{_datadir}/GeoIP/download/
-: > %{buildroot}%{_datadir}/GeoIP/download/GeoIPv6.dat.gz
-: > %{buildroot}%{_datadir}/GeoIP/download/GeoLiteCityv6.dat.gz
-: > %{buildroot}%{_datadir}/GeoIP/download/GeoIPASNumv6.dat.gz
 
 %files
 %if 0%{?_licensedir:1}
@@ -107,21 +80,13 @@ mkdir -p %{buildroot}%{_datadir}/GeoIP/download/
 %files cron
 %config(noreplace) %{_sysconfdir}/cron.weekly/geoipupdate
 
-%files cron6
-%config(noreplace) %{_sysconfdir}/cron.weekly/geoipupdate6
-%dir %{_datadir}/GeoIP/
-%dir %{_datadir}/GeoIP/download/
-%ghost %{_datadir}/GeoIP/download/GeoIPv6.dat.gz
-%ghost %{_datadir}/GeoIP/download/GeoLiteCityv6.dat.gz
-%ghost %{_datadir}/GeoIP/download/GeoIPASNumv6.dat.gz
-
 %triggerin -- GeoIP
 ! test -e %{_sysconfdir}/GeoIP.conf && install -m 0644 %{_datadir}/%{name}/etc.GeoIP.conf %{_sysconfdir}/GeoIP.conf
 install -m 0755 %{_datadir}/%{name}/bin.geoipupdate %{_bindir}/geoipupdate
 mv -f %{_datadir}/%{name}/man1/* %{_mandir}/man1/
 
 %changelog
-* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-2
+* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-3
 - upstream version auto-updated to 3.1.1
 
 * Sun Jul 15 2018 Danila Vershinin <info@getpagespeed.com> - 2.5.0-2
