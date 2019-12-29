@@ -1,1 +1,1 @@
-## Rebuilt geoipupdate for CentOS 7
+## RPM builds of geoipupdate for CentOS 6, 7, 8

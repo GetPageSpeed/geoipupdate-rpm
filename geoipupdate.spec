@@ -2,23 +2,21 @@
 
 Name:		geoipupdate
 Version: 	3.1.1
-Release: 	3%{?dist}
+Release: 	4%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
 URL:		http://dev.maxmind.com/geoip/geoipupdate/
-Source0:	https://github.com/maxmind/geoipupdate-legacy/archive/v%{version}.tar.gz#/%{name}-legacy-%{version}.tar.gz
+Source0:	http://github.com/maxmind/geoipupdate/releases/download/v%{version}/geoipupdate-%{version}.tar.gz
 Source1:	geoipupdate.cron
 BuildRequires:	coreutils
 BuildRequires:	gcc
 BuildRequires:	libcurl-devel
 BuildRequires:	make
 BuildRequires:	zlib-devel
+Conflicts:		GeoIP <= 1.5.0-13
 
-# Add these when building from a git checkout
-BuildRequires: autoconf
-BuildRequires: automake
-BuildRequires: libtool
-
+# Legacy databases fetched by cron6 sub-package no longer available
+Obsoletes:	geoipupdate-cron6 < %{version}-%{release}
 
 %description
 The GeoIP Update program performs automatic updates of GeoIP2 and GeoIP
@@ -36,10 +34,9 @@ Provides:	GeoIP-update = 1.6.0
 Cron job for weekly updates to GeoIP databases from MaxMind.
 
 %prep
-%autosetup -n geoipupdate-legacy-%{version}
+%setup -q
 
 %build
-./bootstrap
 %configure --disable-static --disable-dependency-tracking
 make %{?_smp_mflags}
 
@@ -48,16 +45,6 @@ make install DESTDIR=%{buildroot}
 
 # We'll package the documentation ourselves
 rm -rf %{buildroot}%{_datadir}/doc/geoipupdate
-
-# Fix up the config file to have geoipupdate fetch the free legacy databases by default
-# sed -i -e 's/^\(ProductIds\) .*$/\1 506 517 533/' \
-# 	%{buildroot}%{_sysconfdir}/GeoIP.conf
-
-mkdir -p %{buildroot}%{_datadir}/%{name}
-mv %{buildroot}%{_sysconfdir}/GeoIP.conf %{buildroot}%{_datadir}/%{name}/etc.GeoIP.conf 
-mv %{buildroot}%{_bindir}/geoipupdate %{buildroot}%{_datadir}/%{name}/bin.geoipupdate
-mkdir -p %{buildroot}%{_datadir}/%{name}/man1
-mv %{buildroot}%{_mandir}/man1/geoipupdate.* %{buildroot}%{_datadir}/%{name}/man1
 
 install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
 
@@ -68,29 +55,22 @@ install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
 %doc LICENSE
 %endif
 %doc conf/GeoIP.conf.default README.md ChangeLog.md
-%config(noreplace) %{_datadir}/%{name}/etc.GeoIP.conf
-%{_datadir}/%{name}/bin.geoipupdate
+%config(noreplace) %{_sysconfdir}/GeoIP.conf
+%{_bindir}/geoipupdate
+%{_mandir}/man1/geoipupdate.1*
 %{_mandir}/man5/GeoIP.conf.5*
-%{_datadir}/%{name}/man1/*
-
-# %%config(noreplace) %{_sysconfdir}/GeoIP.conf
-# %%{_bindir}/geoipupdate
-# %%{_mandir}/man1/geoipupdate.1*
 
 %files cron
-%config(noreplace) %{_sysconfdir}/cron.weekly/geoipupdate
-
-%triggerin -- GeoIP
-! test -e %{_sysconfdir}/GeoIP.conf && install -m 0644 %{_datadir}/%{name}/etc.GeoIP.conf %{_sysconfdir}/GeoIP.conf
-install -m 0755 %{_datadir}/%{name}/bin.geoipupdate %{_bindir}/geoipupdate
-mv -f %{_datadir}/%{name}/man1/* %{_mandir}/man1/
+%{_sysconfdir}/cron.weekly/geoipupdate
 
 %changelog
-* Sat Apr 27 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-3
-- upstream version auto-updated to 3.1.1
+* Sun Dec 29 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-4
+- remove triggerin now that GeoIP upstream package is fine
+- rebase on upstream spec
 
-* Sun Jul 15 2018 Danila Vershinin <info@getpagespeed.com> - 2.5.0-2
-- Ensure co-existence with GeoIP-1.5
+* Fri Feb 08 2019 Michal Ruprich <mruprich@redhat.com> - 2.5.0-1
+- Resolves: #1643470 - Add geoipupdate package
+- Initial commit
 
 * Tue Oct 31 2017 Paul Howarth <paul@city-fan.org> - 2.5.0-1
 - Update to 2.5.0
