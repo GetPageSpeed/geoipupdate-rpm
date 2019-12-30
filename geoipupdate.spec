@@ -1,8 +1,8 @@
 %global _hardened_build 1
 
 Name:		geoipupdate
-Version: 	3.1.1
-Release: 	4%{?dist}
+Version: 	4.1.5
+Release: 1%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
 URL:		http://dev.maxmind.com/geoip/geoipupdate/
@@ -64,6 +64,9 @@ install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
 %{_sysconfdir}/cron.weekly/geoipupdate
 
 %changelog
+* Mon Dec 30 2019 Danila Vershinin <info@getpagespeed.com> 4.1.5-1
+- upstream version auto-updated to 4.1.5
+
 * Sun Dec 29 2019 Danila Vershinin <info@getpagespeed.com> 3.1.1-4
 - remove triggerin now that GeoIP upstream package is fine
 - rebase on upstream spec
