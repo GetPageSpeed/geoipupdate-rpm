@@ -1,7 +1,7 @@
 %global _hardened_build 1
 
 Name:		geoipupdate
-Version: 	4.2.2
+Version: 	4.3.0
 Release: 1%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
@@ -64,6 +64,9 @@ install -D -m 755 %{SOURCE1} %{buildroot}%{_sysconfdir}/cron.weekly/geoipupdate
 %{_sysconfdir}/cron.weekly/geoipupdate
 
 %changelog
+* Fri Apr 17 2020 Danila Vershinin <info@getpagespeed.com> 4.3.0-1
+- release 4.3.0
+
 * Sat Feb 22 2020 Danila Vershinin <info@getpagespeed.com> 4.2.2-1
 - upstream version auto-updated to 4.2.2
 
