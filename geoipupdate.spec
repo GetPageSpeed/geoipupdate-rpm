@@ -1,7 +1,7 @@
 %global _hardened_build 1
 
 Name:		geoipupdate
-Version: 	4.3.0
+Version: 	3.1.1
 Release: 1%{?dist}
 Summary:	Update GeoIP2 and GeoIP Legacy binary databases from MaxMind
 License:	GPLv2
