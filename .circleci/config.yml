@@ -53,6 +53,10 @@ jobs: # a collection of steps
     docker:
       - image: getpagespeed/rpmbuilder:centos-8
     <<: *defaults
+  el9:
+    docker:
+      - image: getpagespeed/rpmbuilder:el9
+    <<: *defaults
   deploy-el6:
     <<: *deploy
     environment:
@@ -65,6 +69,10 @@ jobs: # a collection of steps
     <<: *deploy
     environment:
       DISTRO: el8
+  deploy-el9:
+    <<: *deploy
+    environment:
+      DISTRO: el9
 workflows:
   version: 2
   build-deploy-el6:
@@ -94,6 +102,16 @@ workflows:
           context: org-global
           requires:
             - el8
+          filters:
+            branches:
+              only: master
+  build-deploy-el9:
+    jobs:
+      - el9
+      - deploy-el9:
+          context: org-global
+          requires:
+            - el9
           filters:
             branches:
               only: master
